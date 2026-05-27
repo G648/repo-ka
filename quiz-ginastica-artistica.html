@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — Ginástica Artística | UNIP</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f0ed;color:#1a1a1a;min-height:100vh;padding:1.5rem 1rem 3rem}
+  #app{width:100%;max-width:700px;margin:0 auto}
+  .header{text-align:center;margin-bottom:2rem}
+  .header h1{font-size:22px;font-weight:600}
+  .header p{font-size:13px;color:#888;margin-top:4px}
+  .badge{display:inline-block;background:#1a3a5c;color:#fff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;margin-bottom:8px;letter-spacing:.05em;text-transform:uppercase}
+  .start-screen{background:#fff;border:1px solid #e4e4e0;border-radius:14px;padding:2rem 1.5rem;text-align:center}
+  .start-screen h2{font-size:18px;font-weight:600;margin-bottom:.5rem}
+  .start-screen p{font-size:14px;color:#666;margin-bottom:1.5rem;line-height:1.6}
+  .stats-preview{display:flex;gap:12px;justify-content:center;margin-bottom:1.75rem;flex-wrap:wrap}
+  .stat-box{background:#f5f5f3;border-radius:10px;padding:.75rem 1.25rem;text-align:center;min-width:90px}
+  .stat-box .num{font-size:22px;font-weight:600;color:#1a3a5c}
+  .stat-box .lbl{font-size:11px;color:#888;margin-top:2px}
+  .start-btn{background:#1a3a5c;color:#fff;border:none;border-radius:10px;padding:.8rem 2.5rem;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .2s}
+  .start-btn:hover{background:#15304e}
+  .progress-wrap{margin-bottom:1.25rem}
+  .progress-meta{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:6px}
+  .progress-bg{background:#ddddd8;border-radius:99px;height:5px}
+  .progress-fill{background:#1a3a5c;height:5px;border-radius:99px;transition:width .5s ease}
+  .question-card{background:#fff;border:1px solid #e4e4e0;border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1rem}
+  .q-unit{font-size:11px;font-weight:600;color:#1a3a5c;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+  .q-num{font-size:12px;color:#aaa;margin-bottom:8px}
+  .q-text{font-size:15px;line-height:1.65;color:#1a1a1a}
+  .q-img{margin:12px 0;background:#f8f8f6;border:1px solid #e4e4e0;border-radius:8px;padding:10px;text-align:center}
+  .q-img svg{max-width:100%;height:auto}
+  .q-img .img-caption{font-size:11px;color:#999;margin-top:6px;font-style:italic}
+  .options{display:flex;flex-direction:column;gap:9px}
+  .opt-btn{background:#fff;border:1px solid #d6d6d1;border-radius:10px;padding:.8rem 1rem;cursor:pointer;font-size:14px;color:#1a1a1a;text-align:left;display:flex;align-items:flex-start;gap:10px;line-height:1.55;font-family:inherit;transition:background .12s,border-color .12s}
+  .opt-btn:hover:not(:disabled){background:#f5f5f3;border-color:#b0b0aa}
+  .opt-btn:disabled{cursor:default}
+  .opt-letter{font-size:11px;font-weight:700;min-width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid #d6d6d1;color:#999;flex-shrink:0;margin-top:1px;transition:all .2s}
+  .opt-btn.correct{border-color:#2a7d4f;background:#eaf6f0}
+  .opt-btn.correct .opt-letter{background:#2a7d4f;color:#fff;border-color:#2a7d4f}
+  .opt-btn.wrong{border-color:#c0392b;background:#fdf0ef}
+  .opt-btn.wrong .opt-letter{background:#c0392b;color:#fff;border-color:#c0392b}
+  .opt-btn.dimmed{opacity:.38}
+  .feedback{border-radius:10px;padding:.85rem 1rem;font-size:13px;line-height:1.65;margin-top:1rem;display:none}
+  .feedback.correct{background:#eaf6f0;color:#1a5c38;border:1px solid #2a7d4f}
+  .feedback.wrong{background:#fdf0ef;color:#7b2020;border:1px solid #c0392b}
+  .next-btn{margin-top:1rem;width:100%;background:#fff;border:1px solid #d6d6d1;border-radius:10px;padding:.75rem 1rem;font-size:14px;cursor:pointer;color:#1a1a1a;font-family:inherit;display:none;transition:background .12s}
+  .next-btn:hover{background:#f5f5f3}
+  .score-card{background:#fff;border:1px solid #e4e4e0;border-radius:14px;padding:2.5rem 1.5rem;text-align:center;display:none}
+  .trophy{font-size:44px;margin-bottom:.75rem}
+  .score-big{font-size:56px;font-weight:600;line-height:1}
+  .score-sub{font-size:14px;color:#888;margin-top:6px}
+  .pills{display:flex;gap:10px;justify-content:center;margin-top:1.25rem;flex-wrap:wrap}
+  .pill{padding:5px 16px;border-radius:99px;font-size:13px;font-weight:500}
+  .pill.ok{background:#eaf6f0;color:#1a5c38}
+  .pill.err{background:#fdf0ef;color:#7b2020}
+  .score-msg{font-size:15px;color:#444;margin-top:1.5rem;line-height:1.65;max-width:420px;margin-left:auto;margin-right:auto}
+  .btn-row{display:flex;gap:10px;justify-content:center;margin-top:1.75rem;flex-wrap:wrap}
+  .restart-btn{background:#1a3a5c;color:#fff;border:none;border-radius:10px;padding:.7rem 1.75rem;font-size:14px;cursor:pointer;font-family:inherit;transition:background .2s}
+  .restart-btn:hover{background:#15304e}
+  .review-btn{background:#fff;color:#1a1a1a;border:1px solid #d6d6d1;border-radius:10px;padding:.7rem 1.75rem;font-size:14px;cursor:pointer;font-family:inherit;transition:background .12s;display:none}
+  .review-btn:hover{background:#f5f5f3}
+  .review-list{display:none;margin-top:1rem}
+  .review-item{background:#fff;border:1px solid #e4e4e0;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem}
+  .ri-status{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;color:#c0392b}
+  .ri-q{font-size:14px;line-height:1.6;margin-bottom:10px}
+  .ri-answer{font-size:13px;line-height:1.55;padding:8px 10px;border-radius:8px;margin-top:4px}
+  .ri-answer.wa{background:#fdf0ef;color:#7b2020}
+  .ri-answer.ca{background:#eaf6f0;color:#1a5c38}
+  .ri-exp{font-size:13px;color:#666;margin-top:8px;line-height:1.6;border-top:1px solid #f0f0ed;padding-top:8px}
+  @media(max-width:480px){body{padding:1rem .75rem 2rem}.question-card{padding:1rem}.opt-btn{font-size:13px;padding:.7rem .85rem}.score-big{font-size:44px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="badge">UNIP — Disciplina 806930</div>
+    <h1>Ginástica Artística</h1>
+    <p>Aspectos do Esporte — Questões de Provas Anteriores</p>
+  </div>
+  <div class="start-screen" id="start-screen">
+    <h2>Preparado para a prova? 🎯</h2>
+    <p>Quiz com questões reais de provas anteriores da UNIP.<br>Inclui questões com imagens, gabarito e explicação.</p>
+    <div class="stats-preview">
+      <div class="stat-box"><div class="num">26</div><div class="lbl">Questões</div></div>
+      <div class="stat-box"><div class="num">4</div><div class="lbl">Com imagem</div></div>
+      <div class="stat-box"><div class="num">∞</div><div class="lbl">Tentativas</div></div>
+    </div>
+    <button class="start-btn" onclick="startQuiz()">Começar Quiz →</button>
+  </div>
+  <div id="quiz-wrap" style="display:none">
+    <div class="progress-wrap">
+      <div class="progress-meta"><span id="prog-label">Questão 1 de 26</span><span id="prog-score">0 ✓</span></div>
+      <div class="progress-bg"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div id="quiz-area"></div>
+  </div>
+  <div class="score-card" id="score-card">
+    <div class="trophy" id="sc-trophy">🏆</div>
+    <div class="score-big" id="sc-num"></div>
+    <div class="score-sub">de <span id="sc-total"></span> questões corretas</div>
+    <div class="pills"><span class="pill ok" id="sc-ok"></span><span class="pill err" id="sc-err"></span></div>
+    <div class="score-msg" id="sc-msg"></div>
+    <div class="btn-row">
+      <button class="restart-btn" onclick="startQuiz()">↺ Tentar novamente</button>
+      <button class="review-btn" id="review-btn" onclick="showReview()">Ver revisão</button>
+    </div>
+  </div>
+  <div class="review-list" id="review-list"></div>
+</div>
+<script>
+// ── SVGs das questões com imagem ──────────────────────────────────────
+const SVG_GIRO_GIGANTE = `
+<svg viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:240px">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#1a3a5c"/>
+    </marker>
+  </defs>
+  <!-- Suporte da barra -->
+  <line x1="60" y1="60" x2="60" y2="200" stroke="#555" stroke-width="4"/>
+  <line x1="340" y1="60" x2="340" y2="200" stroke="#555" stroke-width="4"/>
+  <line x1="50" y1="200" x2="70" y2="200" stroke="#555" stroke-width="4"/>
+  <line x1="330" y1="200" x2="350" y2="200" stroke="#555" stroke-width="4"/>
+  <!-- Barra fixa -->
+  <line x1="60" y1="60" x2="340" y2="60" stroke="#333" stroke-width="6" stroke-linecap="round"/>
+  <!-- Ponto central de rotação -->
+  <circle cx="200" cy="60" r="5" fill="#1a3a5c"/>
+  <!-- Trajetória circular (raio 110) -->
+  <circle cx="200" cy="60" r="110" fill="none" stroke="#ccc" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <!-- Seta de rotação -->
+  <path d="M 290,90 A 110,110 0 0,0 310,60" fill="none" stroke="#1a3a5c" stroke-width="2.5" marker-end="url(#arr)"/>
+  <!-- ── 6 posições do Giro Gigante ── -->
+  <!-- Pos 0°: corpo acima da barra (mãos na barra, corpo para cima) -->
+  <g stroke="#333" stroke-width="1.8" fill="none">
+    <line x1="200" y1="60" x2="200" y2="-35"/><!-- braços até barra já mostrado pelo ponto -->
+    <circle cx="200" cy="-45" r="9" fill="#333"/>
+    <line x1="200" y1="-36" x2="200" y2="-15"/>
+    <line x1="192" y1="-28" x2="208" y2="-28"/>
+    <line x1="200" y1="-15" x2="193" y2="0"/>
+    <line x1="200" y1="-15" x2="207" y2="0"/>
+  </g>
+  <!-- Pos 60°: direita superior -->
+  <g stroke="#555" stroke-width="1.5" fill="none">
+    <circle cx="288" cy="5" r="8" fill="#555"/>
+    <line x1="288" y1="13" x2="285" y2="33"/>
+    <line x1="279" y1="20" x2="295" y2="25"/>
+    <line x1="285" y1="33" x2="278" y2="48"/>
+    <line x1="285" y1="33" x2="293" y2="47"/>
+    <line x1="288" y1="5" x2="200" y2="60" stroke="#aaa" stroke-width="1" stroke-dasharray="3,3"/>
+  </g>
+  <!-- Pos 120°: direita inferior -->
+  <g stroke="#555" stroke-width="1.5" fill="none">
+    <circle cx="288" cy="120" r="8" fill="#555"/>
+    <line x1="288" y1="128" x2="285" y2="148"/>
+    <line x1="279" y1="136" x2="295" y2="140"/>
+    <line x1="285" y1="148" x2="278" y2="163"/>
+    <line x1="285" y1="148" x2="293" y2="162"/>
+    <line x1="288" y1="120" x2="200" y2="60" stroke="#aaa" stroke-width="1" stroke-dasharray="3,3"/>
+  </g>
+  <!-- Pos 180°: corpo abaixo da barra (posição de suspensão) -->
+  <g stroke="#333" stroke-width="1.8" fill="none">
+    <circle cx="200" cy="180" r="9" fill="#333"/>
+    <line x1="200" y1="171" x2="200" y2="151"/>
+    <line x1="192" y1="161" x2="208" y2="161"/>
+    <line x1="200" y1="151" x2="193" y2="136"/>
+    <line x1="200" y1="151" x2="207" y2="136"/>
+    <line x1="200" y1="60" x2="200" y2="171" stroke="#aaa" stroke-width="1" stroke-dasharray="3,3"/>
+  </g>
+  <!-- Pos 240°: esquerda inferior -->
+  <g stroke="#555" stroke-width="1.5" fill="none">
+    <circle cx="112" cy="120" r="8" fill="#555"/>
+    <line x1="112" y1="128" x2="115" y2="148"/>
+    <line x1="104" y1="136" x2="120" y2="140"/>
+    <line x1="115" y1="148" x2="108" y2="163"/>
+    <line x1="115" y1="148" x2="122" y2="162"/>
+    <line x1="112" y1="120" x2="200" y2="60" stroke="#aaa" stroke-width="1" stroke-dasharray="3,3"/>
+  </g>
+  <!-- Pos 300°: esquerda superior -->
+  <g stroke="#555" stroke-width="1.5" fill="none">
+    <circle cx="112" cy="5" r="8" fill="#555"/>
+    <line x1="112" y1="13" x2="115" y2="33"/>
+    <line x1="104" y1="20" x2="120" y2="25"/>
+    <line x1="115" y1="33" x2="108" y2="48"/>
+    <line x1="115" y1="33" x2="122" y2="47"/>
+    <line x1="112" y1="5" x2="200" y2="60" stroke="#aaa" stroke-width="1" stroke-dasharray="3,3"/>
+  </g>
+  <!-- Label -->
+  <text x="200" y="295" text-anchor="middle" font-size="12" fill="#666" font-family="sans-serif">Eixo externo ao corpo (barra)</text>
+</svg>`;
+
+const SVG_MORTAL_FRENTE = `
+<svg viewBox="0 0 520 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:170px">
+  <defs>
+    <marker id="arr2" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#1a3a5c"/>
+    </marker>
+  </defs>
+  <!-- Chão -->
+  <line x1="10" y1="148" x2="510" y2="148" stroke="#888" stroke-width="2"/>
+  <!-- Direção de movimento -->
+  <line x1="30" y1="135" x2="480" y2="135" stroke="#1a3a5c" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arr2)"/>
+
+  <!-- 1) Posição de saída: impulso -->
+  <g stroke="#1a1a1a" stroke-width="2" fill="none">
+    <circle cx="50" cy="88" r="10" fill="#333" stroke="none"/>
+    <line x1="50" y1="98" x2="50" y2="125"/>
+    <line x1="38" y1="108" x2="62" y2="108"/>
+    <line x1="50" y1="125" x2="42" y2="148"/>
+    <line x1="50" y1="125" x2="58" y2="148"/>
+    <!-- braços para cima -->
+    <line x1="38" y1="108" x2="28" y2="88"/>
+    <line x1="62" y1="108" x2="72" y2="88"/>
+  </g>
+
+  <!-- 2) Voo inicial - corpo horizontal -->
+  <g stroke="#444" stroke-width="1.8" fill="none">
+    <circle cx="160" cy="68" r="9" fill="#444" stroke="none"/>
+    <line x1="160" y1="77" x2="160" y2="98"/>
+    <line x1="149" y1="86" x2="171" y2="86"/>
+    <line x1="160" y1="98" x2="150" y2="112"/>
+    <line x1="160" y1="98" x2="170" y2="112"/>
+    <!-- arco de rotação -->
+    <path d="M 145,62 A 20,20 0 0,1 175,62" fill="none" stroke="#1a3a5c" stroke-width="1.5"/>
+  </g>
+
+  <!-- 3) Posição grupada (tuck) no alto -->
+  <g stroke="#444" stroke-width="1.8" fill="none">
+    <circle cx="260" cy="42" r="9" fill="#444" stroke="none"/>
+    <!-- corpo agrupado: torso curvo -->
+    <path d="M 260,51 Q 248,65 252,76" fill="none"/>
+    <path d="M 260,51 Q 272,65 268,76" fill="none"/>
+    <!-- joelhos ao peito -->
+    <line x1="252" y1="76" x2="258" y2="88"/>
+    <line x1="268" y1="76" x2="262" y2="88"/>
+    <!-- braços agarrando joelhos -->
+    <line x1="254" y1="62" x2="256" y2="78"/>
+    <line x1="266" y1="62" x2="264" y2="78"/>
+  </g>
+
+  <!-- 4) Abrindo para aterrissar -->
+  <g stroke="#444" stroke-width="1.8" fill="none">
+    <circle cx="370" cy="68" r="9" fill="#444" stroke="none"/>
+    <line x1="370" y1="77" x2="370" y2="100"/>
+    <line x1="357" y1="87" x2="383" y2="87"/>
+    <line x1="370" y1="100" x2="360" y2="120"/>
+    <line x1="370" y1="100" x2="380" y2="120"/>
+    <!-- braços abrindo -->
+    <line x1="357" y1="87" x2="343" y2="74"/>
+    <line x1="383" y1="87" x2="397" y2="74"/>
+  </g>
+
+  <!-- 5) Aterrissagem sobre os pés (cravada) -->
+  <g stroke="#1a1a1a" stroke-width="2" fill="none">
+    <circle cx="470" cy="90" r="10" fill="#333" stroke="none"/>
+    <line x1="470" y1="100" x2="470" y2="127"/>
+    <line x1="458" y1="112" x2="482" y2="112"/>
+    <line x1="470" y1="127" x2="462" y2="148"/>
+    <line x1="470" y1="127" x2="478" y2="148"/>
+    <!-- braços levantados (cravada) -->
+    <line x1="458" y1="112" x2="443" y2="95"/>
+    <line x1="482" y1="112" x2="497" y2="95"/>
+  </g>
+
+  <!-- Números de fase -->
+  <text x="50" y="162" text-anchor="middle" font-size="10" fill="#999" font-family="sans-serif">1</text>
+  <text x="160" y="162" text-anchor="middle" font-size="10" fill="#999" font-family="sans-serif">2</text>
+  <text x="260" y="162" text-anchor="middle" font-size="10" fill="#999" font-family="sans-serif">3</text>
+  <text x="370" y="162" text-anchor="middle" font-size="10" fill="#999" font-family="sans-serif">4</text>
+  <text x="470" y="162" text-anchor="middle" font-size="10" fill="#999" font-family="sans-serif">5</text>
+</svg>`;
+
+const SVG_MORTAL_MEIA_VOLTA = `
+<svg viewBox="0 0 520 185" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:185px">
+  <defs>
+    <marker id="arr3" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#1a3a5c"/>
+    </marker>
+    <marker id="arr4" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#c0392b"/>
+    </marker>
+  </defs>
+  <!-- Chão -->
+  <line x1="10" y1="155" x2="510" y2="155" stroke="#888" stroke-width="2"/>
+
+  <!-- Seta principal (mortal) -->
+  <path d="M 50,140 Q 260,40 470,140" fill="none" stroke="#1a3a5c" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr3)"/>
+  <!-- Seta de meia volta (eixo longitudinal) -->
+  <path d="M 220,70 A 18,8 0 0,1 300,70" fill="none" stroke="#c0392b" stroke-width="2" marker-end="url(#arr4)"/>
+  <text x="260" y="58" text-anchor="middle" font-size="10" fill="#c0392b" font-family="sans-serif">½ volta</text>
+
+  <!-- 1) Saída DE FRENTE -->
+  <g stroke="#1a1a1a" stroke-width="2" fill="none">
+    <circle cx="50" cy="95" r="10" fill="#333" stroke="none"/>
+    <line x1="50" y1="105" x2="50" y2="130"/>
+    <line x1="38" y1="115" x2="62" y2="115"/>
+    <line x1="50" y1="130" x2="42" y2="155"/>
+    <line x1="50" y1="130" x2="58" y2="155"/>
+    <line x1="38" y1="115" x2="28" y2="95"/>
+    <line x1="62" y1="115" x2="72" y2="95"/>
+    <!-- Seta indicando direção da face -->
+    <text x="34" y="90" font-size="9" fill="#1a3a5c" font-family="sans-serif">➡</text>
+  </g>
+
+  <!-- 2) Tuck com início de torção -->
+  <g stroke="#555" stroke-width="1.8" fill="none">
+    <circle cx="170" cy="52" r="9" fill="#555" stroke="none"/>
+    <path d="M 170,61 Q 158,73 160,83" fill="none"/>
+    <path d="M 170,61 Q 182,73 180,83" fill="none"/>
+    <line x1="160" y1="83" x2="165" y2="93"/>
+    <line x1="180" y1="83" x2="175" y2="93"/>
+    <line x1="162" y1="71" x2="164" y2="82"/>
+    <line x1="178" y1="71" x2="176" y2="82"/>
+  </g>
+
+  <!-- 3) No alto - torção longitudinal visível -->
+  <g stroke="#555" stroke-width="1.8" fill="none">
+    <circle cx="270" cy="35" r="9" fill="#555" stroke="none"/>
+    <line x1="270" y1="44" x2="270" y2="65"/>
+    <!-- Torção: braços cruzados -->
+    <line x1="258" y1="53" x2="282" y2="53"/>
+    <line x1="260" y1="48" x2="280" y2="58"/>
+    <line x1="270" y1="65" x2="262" y2="80"/>
+    <line x1="270" y1="65" x2="278" y2="80"/>
+  </g>
+
+  <!-- 4) Abrindo - de costas -->
+  <g stroke="#555" stroke-width="1.8" fill="none">
+    <circle cx="370" cy="55" r="9" fill="#555" stroke="none"/>
+    <line x1="370" y1="64" x2="370" y2="88"/>
+    <line x1="357" y1="74" x2="383" y2="74"/>
+    <line x1="370" y1="88" x2="360" y2="108"/>
+    <line x1="370" y1="88" x2="380" y2="108"/>
+    <line x1="357" y1="74" x2="343" y2="60"/>
+    <line x1="383" y1="74" x2="397" y2="60"/>
+  </g>
+
+  <!-- 5) Chegada DE COSTAS -->
+  <g stroke="#1a1a1a" stroke-width="2" fill="none">
+    <circle cx="470" cy="96" r="10" fill="#333" stroke="none"/>
+    <line x1="470" y1="106" x2="470" y2="132"/>
+    <line x1="458" y1="118" x2="482" y2="118"/>
+    <line x1="470" y1="132" x2="462" y2="155"/>
+    <line x1="470" y1="132" x2="478" y2="155"/>
+    <line x1="458" y1="118" x2="443" y2="100"/>
+    <line x1="482" y1="118" x2="497" y2="100"/>
+    <!-- Seta indicando que a face está para trás -->
+    <text x="451" y="90" font-size="9" fill="#c0392b" font-family="sans-serif">⬅</text>
+  </g>
+
+  <!-- Labels -->
+  <text x="50" y="170" text-anchor="middle" font-size="10" fill="#1a3a5c" font-family="sans-serif">Inicia ➡</text>
+  <text x="470" y="170" text-anchor="middle" font-size="10" fill="#c0392b" font-family="sans-serif">Termina ⬅</text>
+  <text x="260" y="175" text-anchor="middle" font-size="10" fill="#888" font-family="sans-serif">Eixo transversal (mortal) + eixo longitudinal (½ volta)</text>
+</svg>`;
+
+const SVG_MESA_SALTO = `
+<svg viewBox="0 0 520 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:160px">
+  <defs>
+    <marker id="arr5" markerWidth="7" markerHeight="7" refX="4" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#1a3a5c"/>
+    </marker>
+  </defs>
+
+  <!-- Chão / pista de corrida -->
+  <rect x="0" y="130" width="520" height="20" fill="#e8e8e4" rx="2"/>
+  <line x1="0" y1="130" x2="520" y2="130" stroke="#ccc" stroke-width="1.5"/>
+
+  <!-- Pista de corrida -->
+  <text x="40" y="145" font-size="10" fill="#999" font-family="sans-serif">Pista de corrida</text>
+  <!-- Seta corrida -->
+  <line x1="10" y1="122" x2="155" y2="122" stroke="#1a3a5c" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr5)"/>
+
+  <!-- Trampolim de molas -->
+  <polygon points="160,130 200,130 195,108 165,108" fill="#4a90d9" opacity="0.85"/>
+  <rect x="163" y="105" width="34" height="5" rx="2" fill="#2c6fad"/>
+  <text x="180" y="148" text-anchor="middle" font-size="10" fill="#2c6fad" font-family="sans-serif">Trampolim</text>
+
+  <!-- Ginasta no trampolim -->
+  <g stroke="#1a1a1a" stroke-width="1.8" fill="none">
+    <circle cx="178" cy="88" r="8" fill="#333" stroke="none"/>
+    <line x1="178" y1="96" x2="178" y2="108"/>
+    <line x1="168" y1="102" x2="188" y2="102"/>
+    <line x1="178" y1="108" x2="172" y2="115"/>
+    <line x1="178" y1="108" x2="184" y2="115"/>
+  </g>
+
+  <!-- Mesa de salto (cavalo) -->
+  <rect x="230" y="82" width="90" height="28" rx="6" fill="#1a3a5c"/>
+  <rect x="238" y="110" width="18" height="20" rx="2" fill="#333"/>
+  <rect x="284" y="110" width="18" height="20" rx="2" fill="#333"/>
+  <text x="275" y="148" text-anchor="middle" font-size="10" fill="#1a3a5c" font-family="sans-serif">Mesa de salto</text>
+
+  <!-- Ginasta no 1º voo (apoio na mesa) -->
+  <g stroke="#555" stroke-width="1.8" fill="none">
+    <circle cx="268" cy="64" r="8" fill="#555" stroke="none"/>
+    <line x1="268" y1="72" x2="265" y2="85"/>
+    <line x1="255" y1="78" x2="275" y2="82"/><!-- apoio mãos na mesa -->
+    <line x1="265" y1="85" x2="258" y2="95"/>
+    <line x1="265" y1="85" x2="272" y2="95"/>
+  </g>
+
+  <!-- Seta 1º voo -->
+  <path d="M 200,102 Q 225,65 255,80" fill="none" stroke="#4a90d9" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="215" y="60" font-size="9" fill="#4a90d9" font-family="sans-serif">1º voo</text>
+
+  <!-- Ginasta no 2º voo (aéreo) -->
+  <g stroke="#333" stroke-width="1.8" fill="none">
+    <circle cx="370" cy="55" r="9" fill="#333" stroke="none"/>
+    <line x1="370" y1="64" x2="368" y2="85"/>
+    <line x1="357" y1="74" x2="381" y2="74"/>
+    <line x1="368" y1="85" x2="361" y2="100"/>
+    <line x1="368" y1="85" x2="375" y2="100"/>
+  </g>
+
+  <!-- Seta 2º voo -->
+  <path d="M 320,83 Q 345,40 365,62" fill="none" stroke="#e67e22" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="325" y="38" font-size="9" fill="#e67e22" font-family="sans-serif">2º voo</text>
+
+  <!-- Colchão de aterrissagem -->
+  <rect x="420" y="110" width="85" height="22" rx="4" fill="#e8a000" opacity="0.9"/>
+  <text x="462" y="148" text-anchor="middle" font-size="10" fill="#b87000" font-family="sans-serif">Colchão</text>
+
+  <!-- Ginasta na aterrissagem -->
+  <g stroke="#1a1a1a" stroke-width="1.8" fill="none">
+    <circle cx="455" cy="88" r="9" fill="#333" stroke="none"/>
+    <line x1="455" y1="97" x2="455" y2="118"/>
+    <line x1="443" y1="108" x2="467" y2="108"/>
+    <line x1="455" y1="118" x2="447" y2="132"/>
+    <line x1="455" y1="118" x2="463" y2="132"/>
+    <line x1="443" y1="108" x2="432" y2="94"/>
+    <line x1="467" y1="108" x2="478" y2="94"/>
+  </g>
+
+  <!-- Labels das fases -->
+  <line x1="195" y1="22" x2="195" y2="108" stroke="#4a90d9" stroke-width="1" stroke-dasharray="2,3"/>
+  <line x1="320" y1="22" x2="320" y2="82" stroke="#e67e22" stroke-width="1" stroke-dasharray="2,3"/>
+  <line x1="420" y1="22" x2="420" y2="110" stroke="#2a7d4f" stroke-width="1" stroke-dasharray="2,3"/>
+</svg>`;
+
+// ── BANCO DE QUESTÕES ─────────────────────────────────────────────────
+const allQuestions = [
+  {
+    text:"Ludwig Jahn criou vários termos relacionados à sua metodologia ginástica: Turnkunst é o método, turnen é praticar a atividade, turner é o praticante, turnplatz é o espaço onde se praticava sua ginástica. Dentre as características listadas a seguir, assinale aquela que NÃO se aplica à metodologia de Jahn:",
+    options:["Os equipamentos utilizados nesse espaço eram construídos, ampliados e mantidos pelo estado, uma vez que este tinha interesse em desenvolver bons soldados.","Jahn iniciou seu trabalho promovendo excursões com seus alunos em dias livres à floresta de Hasenheide para simular batalhas.","Para Jahn todos os uniformes deveriam ser iguais, de forma a evitar-se a distinção entre praticantes pobres e ricos.","Jahn criou seus Turnplatz no meio de áreas verdes, longe da cidade e de suas más influências.","O Turnen era restrito à participação masculina, uma vez que as mulheres não eram aceitas como soldados na Alemanha do século XIX."],
+    correct:1,
+    feedback:"Jahn NÃO promovia excursões para simular batalhas. As características verdadeiras incluem: equipamentos mantidos pelo estado, uniformes iguais para todos (sem distinção de classe), turnplatz em áreas verdes e restrição inicial à participação masculina."
+  },
+  {
+    text:"Desde as primeiras sociedades ginásticas até os dias atuais, a GA brasileira tem evoluído. Sobre a participação brasileira em jogos olímpicos e campeonatos mundiais, é correto afirmar que:\n\nI. A primeira participação do Brasil em JO aconteceu em Moscou/1980, com João Luiz Ribeiro e Cláudia Magalhães.\nII. A primeira medalha do Brasil em um mundial foi conquistada por Daniele Hypolito que, em 2001, ficou com a prata na prova de solo.\nIII. Em 2012, nos JO de Londres, tivemos a primeira medalha olímpica Brasileira, conquistada por Arthur Zanetti nas argolas.",
+    options:["As afirmações I, II e III estão corretas.","Apenas as afirmações I e III estão corretas.","Apenas a afirmação III está correta.","Todas as afirmações estão incorretas.","Apenas a afirmação I está correta."],
+    correct:0,
+    feedback:"Todas as três afirmações estão corretas: Brasil estreou em Moscou/1980; Daniele Hypolito conquistou a primeira medalha brasileira em mundial em 2001 com prata no solo; Arthur Zanetti ganhou a primeira medalha olímpica do Brasil em Londres/2012 nas argolas."
+  },
+  {
+    text:"Leia os princípios mecânicos nos quadros e escolha a alternativa que corresponde à ordem dos padrões básicos de movimento:\n\nQuadro 1: Utilizar mais tempo e mais partes do corpo para desacelerar e absorver impactos.\nQuadro 2: Aplicação de força interna (contração muscular) para mover o centro de gravidade para fora da base de apoio em movimentos cíclicos.\nQuadro 3: Na fase ascendente, o momento será diminuído. Na fase descendente, o momento será aumentado.\nQuadro 4: Aplicação de força interna ou externa para produzir um deslocamento rápido do centro de gravidade.",
+    options:["Quadro 1 = ATERRISSAGENS; Quadro 2 = DESLOCAMENTOS; Quadro 3 = BALANÇOS; Quadro 4 = SALTOS.","Quadro 1 = ROTAÇÕES; Quadro 2 = DESLOCAMENTOS; Quadro 3 = BALANÇOS; Quadro 4 = SALTOS.","Quadro 1 = ATERRISSAGENS; Quadro 2 = DESLOCAMENTOS; Quadro 3 = ROTAÇÕES; Quadro 4 = POSIÇÕES ESTÁTICAS.","Quadro 1 = POSIÇÕES ESTÁTICAS; Quadro 2 = DESLOCAMENTOS; Quadro 3 = ROTAÇÕES; Quadro 4 = SALTOS.","Quadro 1 = ATERRISSAGENS; Quadro 2 = ROTAÇÕES; Quadro 3 = BALANÇOS; Quadro 4 = DESLOCAMENTOS."],
+    correct:0,
+    feedback:"Q1 = ATERRISSAGENS (absorver impacto). Q2 = DESLOCAMENTOS (movimentos cíclicos saindo da base de apoio). Q3 = BALANÇOS (momento aumenta na descida, diminui na subida). Q4 = SALTOS (força explosiva para deslocar o centro de gravidade rapidamente)."
+  },
+  {
+    text:"Os aparelhos auxiliares existem para criar condições de trabalho gradativas para os ginastas. Quais seriam esses aparelhos? Assinale a alternativa INCORRETA:",
+    options:["Minitrampolim, trampolim acrobático, tumbletrack e trampolim de molas.","Trave pequena, cogumelo, plinto e espaldar.","Colchão rampa, colchão gordo, fosso e potrinho.","Protetor de trave, plinto, corda lisa e taquinho.","Colchão octogonal, plinto, cogumelo e trampolim acrobático."],
+    correct:1,
+    feedback:"A alternativa INCORRETA é B: o espaldar NÃO é um aparelho auxiliar da Ginástica Artística. Os verdadeiros aparelhos auxiliares incluem minitrampolim, trampolim acrobático, colchão rampa, colchão gordo, fosso, potrinho, taquinho, protetor de trave, colchão octogonal, plinto e cogumelo."
+  },
+  {
+    text:"Cada um dos seis PBMs de Russell e Kinsman possui subdivisões próprias. Faça a correlação:\n\n1- Saltos     | A- Sobre os pés, sobre as mãos em apoio ou em suspensão\n2- Balanços  | B- Sobre os pés, sobre um pé, sobre as mãos\n3- Deslocamentos | C- Do apoio, da suspensão",
+    options:["1A - 2C - 3B","1B - 2A - 3C","1C - 2B - 3A","1B - 2C - 3A","1A - 2B - 3C"],
+    correct:3,
+    feedback:"Correlação correta: 1B-2C-3A. Saltos (1) = sobre os pés, sobre um pé ou sobre as mãos (B). Balanços (2) = do apoio ou da suspensão (C). Deslocamentos (3) = sobre os pés, sobre as mãos em apoio ou em suspensão (A)."
+  },
+  {
+    text:"Com cuidados simples pode-se evitar a maior parte dos acidentes. Qual das alternativas corresponde à ação adequada para a prevenção de causas extrínsecas ou intrínsecas?\n\nI. Promover a manutenção das condições físicas do atleta como forma de evitar problemas de causas extrínsecas.\nII. Sempre realizar aquecimento corporal, pois é uma forma de prevenir problemas de ordem intrínsecos.\nIII. Estar atento às condições gerais do espaço de treinamento como forma de evitar acidentes de ordem extrínsecos.",
+    options:["Somente as afirmativas I e II são verdadeiras.","São falsas somente as afirmativas I e III.","Todas as afirmativas são verdadeiras.","Somente as afirmativas II e III são verdadeiras.","Somente a afirmativa III é verdadeira."],
+    correct:3,
+    feedback:"I é FALSA: manutenção das condições físicas previne causas INTRÍNSECAS, não extrínsecas. II é VERDADEIRA: aquecimento previne causas intrínsecas (fisiológicas). III é VERDADEIRA: atenção ao espaço previne causas extrínsecas. Somente II e III estão corretas."
+  },
+  {
+    text:"Os acidentes podem ocorrer por fatores intrínsecos e extrínsecos. Como fatores EXTRÍNSECOS podemos destacar:\n\nI. Fator psicológico (emoção; medo; falta ou excesso de confiança; dependência do professor).\nII. Instalações (piso, iluminação; altura do teto; espaço entre os equipamentos).\nIII. Disciplina (falta de atenção; não obediência ao professor; utilização incorreta dos equipamentos).\nIV. Fator pedagógico (orientação inadequada no ensino das habilidades; ajuda inadequada).",
+    options:["São fatores extrínsecos somente os itens I, II e IV.","Somente o item IV é um fator extrínseco.","São fatores extrínsecos somente os itens II e IV.","São fatores extrínsecos somente os itens II e III.","São fatores extrínsecos somente os itens III e IV."],
+    correct:2,
+    feedback:"Fatores EXTRÍNSECOS são externos ao ginasta: Instalações (II) e Fator pedagógico/ajuda inadequada (IV). Fator psicológico (I) e Disciplina (III) são fatores INTRÍNSECOS. Portanto somente II e IV são extrínsecos."
+  },
+  {
+    text:"No programa oficial de Competições de GA (JO, Mundiais e Continentais), a competição é subdividida em 4 etapas. Quais as alternativas corretas:\n\nI. A competição I é responsável pela classificação das equipes.\nII. A competição II é responsável pela classificação do individual geral.\nIII. A competição III é responsável pela classificação do individual por aparelhos.\nIV. A competição IV é responsável pelas eliminatórias.",
+    options:["I e II","II e III","I e III","I e IV","II e IV"],
+    correct:1,
+    feedback:"Corretas: II e III. Estrutura oficial: CI = Classificatória (todos competem); CII = Final Individual Geral (24 melhores, 2 por país); CIII = Final Individual por Aparelhos (8 melhores de cada, 2 por país); CIV = Final por Equipes. CI NÃO é só para equipes e CIV NÃO é eliminatória."
+  },
+  {
+    text:"Os primeiros espaços para o turnkunst na Alemanha datam de 1811. Sobre a chegada do método ao Brasil, é correto afirmar que:",
+    options:["O turnkunst chegou ao Brasil por imigrantes alemães na região sudeste por volta de 1824. A mais antiga associação é a Sociedade Ginástica de Porto Alegre, datada de 1867.","O turnkunst chegou ao Brasil por imigrantes alemães na região sul por volta de 1824. A mais antiga associação é a Sociedade Ginástica de Joinville, datada de 1858.","O turnkunst chegou ao Brasil por imigrantes italianos na região sudeste por volta de 1824. A mais antiga associação é a Sociedade Ginástica de Joinville, datada de 1858.","O turnkunst chegou ao Brasil por imigrantes alemães na região sul por volta de 1824. A mais antiga associação é a Sociedade Ginástica de Joinville, datada de 1828.","O turnkunst chegou ao Brasil por imigrantes ucranianos no Paraná por volta de 1824. A mais antiga associação é a Sociedade Ginástica de Joinville, datada de 1958."],
+    correct:1,
+    feedback:"O turnkunst chegou por imigrantes ALEMÃES na região SUL por volta de 1824. Fundaram as primeiras sociedades ginásticas como ponto de encontro e suporte. A mais antiga é a Sociedade Ginástica de Joinville, datada de 1858."
+  },
+  {
+    text:"A prática da Ginástica Artística pode ser muito benéfica para as crianças, pois:",
+    options:["Favorece a formação ampla do repertório motor, pois no processo de aprendizagem ocorre uma repetição metódica dos exercícios.","É durante a infância que se forma o repertório motor e a GA possibilita um amplo trabalho coordenativo, que favorece o desenvolvimento motor da criança.","Apresenta à criança inúmeras possibilidades de movimento, além de favorecer aspectos cognitivos como integração com outras crianças e respeito às regras.","Favorece a formação ampla da criança, nos aspectos motor, técnico e tático.","A solicitação da capacidade física força é muito alta nesse esporte, favorecendo o crescimento saudável da criança."],
+    correct:1,
+    feedback:"É durante a infância que se forma o repertório motor, e a GA possibilita um amplo trabalho coordenativo que favorece o desenvolvimento motor. A GA é especialmente rica pois envolve movimentos complexos que desenvolvem coordenação, equilíbrio, força e flexibilidade."
+  },
+  {
+    text:"Podemos definir o Movimento Ginástico Europeu como sendo:",
+    options:["O surgimento de grupos europeus que visavam desenvolver metodologias ginásticas para promover competições entre as nações, culminando nas primeiras provas de ginástica nos jogos olímpicos.","Movimentos que ocorreram no início do século XIX e que deram origem às escolas ginásticas Francesa, Inglesa, Suíça e Alemã.","Movimentos que ocorreram a partir do Renascimento e que visavam à sistematização dos exercícios físicos para atender a objetivos específicos, como promoção da saúde, preparação para a guerra, aprimoramento das raças etc.","Um período de grande desenvolvimento das metodologias gímnicas na Europa. Ludwig Jahn, por exemplo, é considerado o pai da ginástica sueca.","O início de estudos que visavam, por meio de atividades ginásticas, o desenvolvimento das raças, a prevenção de doenças, o treinamento de soldados etc."],
+    correct:2,
+    feedback:"Movimentos que ocorreram a partir do Renascimento para sistematizar os exercícios físicos com objetivos específicos: saúde, guerra, aprimoramento das raças. Ludwig Jahn é o pai da ginástica ALEMÃ (não sueca). A escola sueca tem outros criadores."
+  },
+  {
+    text:"O treinamento da GA é um processo de muitos anos, sendo a iniciação esportiva precoce uma de suas marcas. A INICIAÇÃO ESPORTIVA é o primeiro estágio do trabalho de formação de um atleta. Leia as afirmações:\n\nI. A abordagem das particularidades dos elementos básicos da GA deve ser o fator essencial dentro do estudo das posições e seleção dos elementos-chave, com controle e correção postural.\nII. A Iniciação Esportiva deverá proporcionar um aprendizado visando à perfeição, devendo ser fundamentada e estruturada dentro dos padrões ideais de execução técnica.\nIII. A iniciação esportiva pode ser construída no período em que a criança inicia atividades esportivas de forma específica. Portanto, para ter o rendimento esperado, o ginasta deverá se dedicar exclusivamente à GA.",
+    options:["Apenas a afirmação I é verdadeira.","As afirmações I e III são falsas.","Apenas a afirmação I é falsa.","Estão corretas as afirmações I e II.","Apenas as afirmações I e II estão incorretas."],
+    correct:3,
+    feedback:"Afirmações I e II corretas. A III é FALSA: a iniciação esportiva NÃO deve exigir dedicação exclusiva à GA. A especialização precoce é prejudicial ao desenvolvimento integral da criança. A formação deve ser ampla nos fundamentos do movimento."
+  },
+  {
+    text:"Sobre as raízes da Ginástica Artística, é correto afirmar que:\n\nI. Durante as Guerras Napoleônicas, o confronto entre França e Prússia na Batalha de Jena influenciou fortemente Ludwig Jahn a desenvolver seu método ginástico.\nII. A imponente vitória do exército da Prússia frente aos invasores franceses o motivou a estudar os métodos militares alemães e a melhorá-los.\nIII. Ludwig Jahn iniciou então o desenvolvimento de sua metodologia ginástica, à qual denominou Turnkunst.",
+    options:["A afirmação II é verdadeira e as demais são falsas.","As afirmações I e III são verdadeiras.","Apenas a afirmação III está correta.","As três afirmações são falsas.","A afirmação I é verdadeira e as demais são falsas."],
+    correct:1,
+    feedback:"I e III são verdadeiras. A II é FALSA: foi a DERROTA da Prússia para a França (não a vitória) que motivou Jahn. A derrota na Batalha de Jena (1806) inspirou Jahn a criar um método de preparação física para fortalecer o povo alemão: o Turnkunst."
+  },
+  {
+    text:"A GA é fruto de uma longa evolução dos exercícios metodizados que remonta às primeiras civilizações humanas. Quais fatores corroboram com esta afirmação?",
+    options:["Desenhos rupestres em cavernas mundo afora.","Ilustrações nos primeiros livros impressos na Idade Moderna.","Desenhos nas pirâmides, tumbas e papiros egípcios mostrando que esse povo realizava exercícios acrobáticos.","O próprio termo ginástica foi cunhado pelos antigos fenícios.","Textos antigos deixados pelos indígenas que habitavam o Brasil pré-descobrimento."],
+    correct:2,
+    feedback:"Os desenhos nas pirâmides, tumbas e papiros egípcios mostrando exercícios acrobáticos corroboram que a GA remonta às primeiras civilizações. Esses registros históricos são evidências concretas da prática de movimentos ginásticos na Antiguidade egípcia."
+  },
+  {
+    text:"Desde quando existe o código de pontuação na GA?",
+    options:["Desde 1936.","Desde que foram modificados os regulamentos.","Há pouco tempo.","Desde que existam árbitros e treinadores.","Desde a primeira competição oficial em 1928."],
+    correct:0,
+    feedback:"O primeiro código de pontuação da GA foi publicado em 1936 e, desde então, se modifica ao longo dos anos. É atualizado a cada ciclo olímpico (4 em 4 anos), sempre após as Olimpíadas."
+  },
+  {
+    text:"Sobre o código de pontuação da GA, podemos afirmar que:",
+    options:["Garante valores fundamentais do esporte e do movimento olímpico.","Os códigos de pontuação são modificados a cada 2 anos e têm o objetivo de classificar e rebaixar os elementos.","Codificar, estabelecer a atribuição de pontos, diferenciar as apresentações dos ginastas, avaliar o que é permitido e definir o vencedor.","O primeiro código de pontuação publicado data de 1956.","O código de pontuação se tornou uma ferramenta para o alto rendimento esportivo e para grupos iniciantes."],
+    correct:2,
+    feedback:"As funções do código: codificar elementos, estabelecer pontos, diferenciar apresentações, avaliar o que é permitido e definir o vencedor. O código é modificado a cada 4 anos (não 2), o primeiro foi em 1936 (não 1956) e serve apenas para alto rendimento (não para iniciantes)."
+  },
+  {
+    text:"Em seus estudos, Russell e Kinsman distinguiram seis padrões de movimento com os rotacionais e os lineares. Qual das afirmações está correta?",
+    options:["Podemos classificar como lineares os saltos, as posições estáticas e os deslocamentos.","Balanços, rotações e aterrissagens são considerados como rotacionais.","Saltos e deslocamentos são lineares e rotações e balanços são rotacionais.","Posições estáticas, deslocamentos e aterrissagens são lineares.","Podemos classificar como lineares as aterrissagens, as posições estáticas e os balanços."],
+    correct:2,
+    feedback:"Saltos e deslocamentos são LINEARES (o centro de massa se desloca em linha). Rotações e balanços são ROTACIONAIS (o corpo gira em torno de um eixo). Aterrissagens e posições estáticas são categorias próprias, não classificadas como lineares ou rotacionais nessa divisão."
+  },
+  {
+    text:"O salto sobre a mesa é a prova mais rápida de todas. O ginasta deve demonstrar força explosiva, agilidade e precisão. Observe o diagrama do aparelho abaixo e responda a alternativa INCORRETA:",
+    svg: SVG_MESA_SALTO,
+    svgCaption: "Aparelho de salto sobre a mesa (salto sobre o cavalo) — Fonte: livro-texto",
+    options:["A abordagem do trampolim — a corrida executada pelo ginasta até o salto — é a parte menos importante do exercício.","O segundo voo compreende o momento entre a perda de contato das mãos com a mesa e é finalizado com a aterrissagem sobre os colchões.","O primeiro voo, ou 'entrada', compreende a fase aérea na qual o ginasta sai do trampolim até o apoio na mesa de salto.","O colchão onde o ginasta aterrissa possui linhas demarcatórias que determinam o espaço ideal para a chegada.","Os equipamentos que compõem a prova são a mesa de salto, o trampolim de molas, a pista de corrida e os colchões de aterrissagem."],
+    correct:0,
+    feedback:"A alternativa INCORRETA é A. A abordagem do trampolim (corrida) é parte FUNDAMENTAL do exercício — a velocidade e potência da corrida determinam diretamente a qualidade do salto. Todas as demais alternativas (B, C, D e E) estão corretas."
+  },
+  {
+    text:"A GA é uma modalidade gímnica de competição. Sobre as competições na fase da Iniciação Esportiva, podemos afirmar:",
+    options:["A competição deve proporcionar a oportunidade de encaminhar o aluno à superação de adversários em igual nível de condições técnicas.","A competição pode ser um referencial de autoavaliação para o atleta, com objetivo de autossuperação e formação em longo prazo.","Os eventos têm a característica de 'elitização', visando difundir e incentivar a prática da GA em espaços aptos a desenvolver ginastas de alto nível.","A competição pode ser referencial de avaliação dos adversários, com objetivo de superação destes em eventos futuros.","Os eventos devem conduzir a um trabalho preparatório visando movimentos com o maior grau de dificuldade possível."],
+    correct:1,
+    feedback:"Na Iniciação Esportiva, a competição deve ser referencial de AUTOAVALIAÇÃO, com objetivo de autossuperação e formação em longo prazo. Não se busca superar adversários, nem exigir alta dificuldade, nem elitizar. O foco é no desenvolvimento integral do praticante."
+  },
+  {
+    text:"Observe a figura a seguir (Figura 54 — Finalização sobre os pés) que mostra um mortal para frente. Baseado na sequência de movimento, quais os Padrões Básicos de Movimento estão presentes no exercício?",
+    svg: SVG_MORTAL_FRENTE,
+    svgCaption: "Figura 54 – Finalização sobre os pés — Fonte: livro-texto",
+    options:["Salto sobre os pés, rotação no eixo longitudinal do corpo, e aterrissagem cravada.","Salto sobre os pés, rotação no eixo anteroposterior do corpo, e aterrissagem sobre as mãos.","Salto sobre os pés, rotação no eixo transversal do corpo, e aterrissagem sobre as mãos.","Salto sobre os pés, rotação no eixo longitudinal do corpo, e aterrissagem sobre os pés.","Salto sobre os pés, rotação no eixo transversal do corpo, e aterrissagem sobre os pés."],
+    correct:4,
+    feedback:"No mortal para frente: SALTO sobre os pés (impulso com ambos os pés), ROTAÇÃO no eixo TRANSVERSAL (o eixo que passa de lado a lado pelo corpo — usado em mortais para frente e para trás) e ATERRISSAGEM sobre os pés. O eixo longitudinal seria para piruetas (torções)."
+  },
+  {
+    text:"No movimento apresentado na figura a seguir, a ginasta executa um 'mortal para frente com meia volta'. Observe que ela INICIA de frente para o sentido do movimento, porém TERMINA de costas para esse mesmo sentido. Quais os Padrões Básicos de Movimento estão presentes no exercício?",
+    svg: SVG_MORTAL_MEIA_VOLTA,
+    svgCaption: "Figura 71 – Sheep jump e mortal para frente com 1/2 volta — Fonte: livro-texto",
+    options:["Salto sobre os pés, rotação em torno dos eixos anteroposterior e transversal, e aterrissagem sobre os pés.","Salto sobre os pés, rotação em torno dos eixos anteroposterior e longitudinal, e aterrissagem sobre os pés.","Salto vertical, rotação em torno dos eixos longitudinal e transversal, e aterrissagem sobre os pés.","Salto horizontal, rotação em torno dos eixos anteroposterior e transversal, e aterrissagem sobre os pés.","Salto sobre os pés, rotação em torno dos eixos longitudinal e transversal, e aterrissagem sobre os pés."],
+    correct:4,
+    feedback:"No mortal com meia volta estão presentes DOIS eixos de rotação: o TRANSVERSAL (responsável pelo mortal — a virada para frente) e o LONGITUDINAL (responsável pela meia volta — a torção que faz a ginasta terminar de costas). O salto é sobre os pés e a aterrissagem também é sobre os pés."
+  },
+  {
+    text:"Observe a figura a seguir (Giro Gigante), exercício executado tanto na barra fixa quanto nas barras paralelas assimétricas. Tomando como base os Padrões Básicos de Movimento propostos por Russell (1986), esse elemento pode ser identificado como:",
+    svg: SVG_GIRO_GIGANTE,
+    svgCaption: "Giro Gigante — Imagem do autor",
+    options:["Um BALANÇO, pois o eixo de rotação é externo ao corpo do atleta.","Um DESLOCAMENTO em suspensão.","Uma ROTAÇÃO executada no eixo transversal do corpo.","Uma ROTAÇÃO realizada no eixo longitudinal do corpo.","Uma POSIÇÃO ESTÁTICA, pois há pouca variação na posição corporal do atleta."],
+    correct:0,
+    feedback:"O Giro Gigante é um BALANÇO, pois o eixo de rotação é EXTERNO ao corpo do atleta (a barra). Segundo Russell, balanços são habilidades nas quais o corpo se move por meio de um eixo externo. Embora seja uma rotação completa (360°), o que o define como balanço é que o eixo está fora do corpo."
+  },
+  {
+    text:"Quando pensamos em desenvolver a GA, logo consideramos as dificuldades. Qual é o critério mais importante para um bom professor de ginástica, de acordo com Nunomura (2008)?",
+    options:["Conhecimento sobre os materiais e espaço físico necessário para a prática.","Habilidade em realizar exercícios perigosos de forma segura.","Capacidade de lidar com o medo e a falta de conhecimento dos alunos.","Domínio e conhecimento na área de segurança e prevenção de acidentes.","Experiência em lidar com lesões decorrentes da prática da GA."],
+    correct:3,
+    feedback:"Segundo Nunomura (2008), o critério mais importante (98%) é o DOMÍNIO E CONHECIMENTO NA ÁREA DE SEGURANÇA E PREVENÇÃO DE ACIDENTES. Todo professor deve prever possíveis riscos de acidentes e estabelecer procedimentos para preveni-los."
+  },
+  {
+    text:"Qual é a definição da GA como modalidade esportiva de competição reconhecida pela FIG (Federação Internacional de Ginástica)?",
+    options:["A GA é uma modalidade esportiva que exige apenas força e equilíbrio dos praticantes.","A GA é um esporte olímpico que privilegia a execução de elementos acrobáticos e saltos ginásticos.","A GA é uma modalidade coordenativa e de habilidade motora fechada, sem provas específicas para cada gênero.","A GA é um esporte individual que nunca esteve presente nos Jogos Olímpicos de Verão.","A GA é uma modalidade que requer coragem e determinação, mas não necessita de muitas horas de treinamento."],
+    correct:1,
+    feedback:"A GA é um esporte OLÍMPICO que privilegia a execução de ELEMENTOS ACROBÁTICOS E SALTOS GINÁSTICOS. É uma das modalidades mais antigas dos Jogos Olímpicos modernos, presente desde 1896 em Atenas. Possui provas específicas para cada gênero e exige anos de treinamento dedicado."
+  },
+  {
+    text:"Russell e Kinsman concluíram que não importa qual exercício o ginasta faça, este apresentará um ou mais padrões de movimento em sua composição. O que mais Russell e Kinsman observaram em seus estudos?",
+    options:["Russell e Kinsman concluíram que não importa qual exercício o ginasta faça, este apresentará um ou mais padrões de movimento em sua composição.","Russell e Kinsman identificaram dez padrões que se repetem constantemente.","Russell e Kinsman concluíram que cada exercício apresentará apenas um padrão de movimento.","Russell e Kinsman observaram que sempre haverá uma rotação nos movimentos executados na GA.","Russell e Kinsman concluíram que não há como identificar padrões de movimento na GA, dada a complexidade dos elementos."],
+    correct:0,
+    feedback:"Russell e Kinsman concluíram que qualquer exercício da GA apresentará UM OU MAIS padrões de movimento em sua composição. Eles identificaram SEIS padrões básicos (não dez). Essa descoberta sistematizou o ensino da GA, permitindo que todos os elementos fossem analisados a partir desses padrões e suas combinações."
+  },
+  {
+    text:"A GA, assim como muitas outras modalidades esportivas, está inserida nas três dimensões sociais do esporte descritas por Tubino (2001). Sobre essas dimensões e sua aplicação, é correto afirmar que:",
+    options:["As atividades nas escolinhas de GA em clubes estão inseridas na dimensão do ESPORTE EDUCAÇÃO, pois não focam na formação de atletas de ponta.","O trabalho com as ginastas das seleções nacionais pode ser classificado como ESPORTE PARTICIPAÇÃO, pois objetiva a participação em eventos competitivos.","As atividades de GA em diversas escolas como atividade extracurricular estão inseridas no ESPORTE EDUCAÇÃO, pois são aplicadas no ambiente escolar.","A GA em projetos sociais desenvolvidos por entidades públicas, onde a ginástica é o meio (não o fim) para o desenvolvimento integral, define-se como ESPORTE EDUCAÇÃO.","As atividades de GA extracurriculares em escolas estão inseridas no ESPORTE PERFORMANCE, pois o objetivo difere da educação física regular."],
+    correct:3,
+    feedback:"Quando a GA é utilizada em projetos sociais de entidades públicas como MEIO (não fim) para o desenvolvimento integral das pessoas, ela se enquadra no ESPORTE EDUCAÇÃO. As três dimensões de Tubino são: Esporte Educação (formação integral), Esporte Participação (lazer/saúde) e Esporte Performance (alto rendimento)."
+  }
+];
+
+let questions=[],current=0,score=0,errors=0,answered=false,userAnswers=[];
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function startQuiz(){
+  questions=shuffle(allQuestions);
+  current=0;score=0;errors=0;answered=false;userAnswers=[];
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('score-card').style.display='none';
+  document.getElementById('review-list').style.display='none';
+  document.getElementById('quiz-wrap').style.display='block';
+  render();
+}
+
+function render(){
+  const q=questions[current];
+  const pct=(current/questions.length)*100;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-label').textContent=`Questão ${current+1} de ${questions.length}`;
+  document.getElementById('prog-score').textContent=`${score} ✓`;
+  const letters=['A','B','C','D','E'];
+  const qText=q.text.replace(/\n/g,'<br>');
+  const imgHtml=q.svg?`<div class="q-img">${q.svg}<div class="img-caption">${q.svgCaption||''}</div></div>`:'';
+  document.getElementById('quiz-area').innerHTML=`
+    <div class="question-card">
+      <div class="q-unit">UNIP — Ginástica Artística</div>
+      <div class="q-num">Questão ${current+1}</div>
+      <div class="q-text">${qText}</div>
+      ${imgHtml}
+    </div>
+    <div class="options" id="opts">
+      ${q.options.map((o,i)=>`<button class="opt-btn" id="opt-${i}" onclick="choose(${i})"><span class="opt-letter">${letters[i]}</span><span>${o}</span></button>`).join('')}
+    </div>
+    <div class="feedback" id="fb"></div>
+    <button class="next-btn" id="next-btn" onclick="next()">${current+1<questions.length?'Próxima questão →':'Ver resultado 🏆'}</button>`;
+  answered=false;
+}
+
+function choose(idx){
+  if(answered)return;
+  answered=true;
+  const q=questions[current];
+  const fb=document.getElementById('fb');
+  userAnswers.push({q,chosen:idx,correct:q.correct});
+  q.options.forEach((_,i)=>{
+    const btn=document.getElementById('opt-'+i);
+    btn.disabled=true;
+    if(i===q.correct)btn.classList.add('correct');
+    else if(i===idx)btn.classList.add('wrong');
+    else btn.classList.add('dimmed');
+  });
+  if(idx===q.correct){score++;fb.className='feedback correct';fb.innerHTML='✓ <strong>Correto!</strong> '+q.feedback;}
+  else{errors++;fb.className='feedback wrong';fb.innerHTML='✗ <strong>Incorreto.</strong> '+q.feedback;}
+  fb.style.display='block';
+  document.getElementById('next-btn').style.display='block';
+  document.getElementById('prog-score').textContent=`${score} ✓`;
+}
+
+function next(){current++;if(current>=questions.length)showScore();else render();}
+
+function showScore(){
+  document.getElementById('prog-fill').style.width='100%';
+  document.getElementById('quiz-area').innerHTML='';
+  document.getElementById('quiz-wrap').style.display='none';
+  const pct=Math.round((score/questions.length)*100);
+  document.getElementById('sc-num').textContent=score;
+  document.getElementById('sc-total').textContent=questions.length;
+  document.getElementById('sc-ok').textContent=`✓ ${score} certa(s)`;
+  document.getElementById('sc-err').textContent=`✗ ${errors} errada(s)`;
+  let trophy,msg;
+  if(pct===100){trophy='🏆';msg='Perfeito! Você dominou todo o conteúdo. Está mais do que pronto para a prova!';}
+  else if(pct>=80){trophy='⭐';msg='Excelente! Muito bem preparado. Revise somente os pontos que errou.';}
+  else if(pct>=60){trophy='📚';msg='Bom trabalho! Revise os tópicos que errou e tente novamente.';}
+  else{trophy='💪';msg='Continue estudando! Releia o material e tente de novo — você vai chegar lá!';}
+  document.getElementById('sc-trophy').textContent=trophy;
+  document.getElementById('sc-msg').textContent=msg;
+  document.getElementById('score-card').style.display='block';
+  if(errors>0)document.getElementById('review-btn').style.display='inline-block';
+  buildReview();
+}
+
+function buildReview(){
+  const letters=['A','B','C','D','E'];
+  let html='<h3 style="font-size:16px;font-weight:600;margin-bottom:1rem;color:#1a1a1a;">Revisão das questões erradas ❌</h3>';
+  userAnswers.filter(a=>a.chosen!==a.correct).forEach(a=>{
+    const imgHtml=a.q.svg?`<div class="q-img" style="margin:8px 0">${a.q.svg}</div>`:'';
+    html+=`<div class="review-item">
+      <div class="ri-status">✗ Incorreta</div>
+      <div class="ri-q">${a.q.text.replace(/\n/g,'<br>')}</div>
+      ${imgHtml}
+      <div class="ri-answer wa"><strong>Sua resposta:</strong> (${letters[a.chosen]}) ${a.q.options[a.chosen]}</div>
+      <div class="ri-answer ca"><strong>Resposta correta:</strong> (${letters[a.correct]}) ${a.q.options[a.correct]}</div>
+      <div class="ri-exp">${a.q.feedback}</div>
+    </div>`;
+  });
+  document.getElementById('review-list').innerHTML=html;
+}
+
+function showReview(){document.getElementById('review-list').style.display='block';document.getElementById('review-list').scrollIntoView({behavior:'smooth'});}
+</script>
+</body>
+</html>
